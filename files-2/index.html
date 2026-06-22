@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fern & Current — Event Planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+
+  /* Page-specific styles for the homepage.
+     Shared tokens, nav, buttons, forms, footer live in styles.css */
+
+  /* ===================== RIVER RAIL (signature element) ===================== */
+  .page-grid{
+    display:grid;
+    grid-template-columns: var(--rail-w) 1fr;
+    position:relative;
+  }
+  .river-rail{
+    grid-column:1;
+    grid-row:1 / -1;
+    position:relative;
+  }
+  .river-rail svg{
+    position:absolute;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+  }
+  .river-rail path{
+    fill:none;
+    stroke:var(--river);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    opacity:0.55;
+  }
+  .river-stone{
+    grid-column:1;
+    justify-self:center;
+    align-self:center;
+    width:13px; height:13px;
+    border-radius:50%;
+    background:var(--bg-mid);
+    border:2px solid var(--river);
+    position:relative;
+    z-index:2;
+    transition:background .4s ease, box-shadow .4s ease, transform .4s ease;
+  }
+  .river-stone.is-active{
+    background:var(--river);
+    box-shadow:0 0 0 6px rgba(123,187,169,0.18), 0 0 18px rgba(158,212,195,0.6);
+    transform:scale(1.15);
+  }
+  @media (max-width:900px){
+    .page-grid{grid-template-columns: 1fr;}
+    .river-rail, .river-stone{display:none;}
+  }
+
+  /* ===================== HERO ===================== */
+  .hero{
+    position:relative;
+    background:
+      radial-gradient(ellipse at 18% 20%, rgba(123,187,169,0.16), transparent 55%),
+      radial-gradient(ellipse at 85% 75%, rgba(215,174,99,0.10), transparent 50%),
+      var(--bg-deepest);
+    overflow:hidden;
+    padding-top:9rem;
+  }
+  .hero .section-inner{
+    padding-top:1rem;
+    padding-bottom:7rem;
+    position:relative;
+    z-index:2;
+  }
+  .hero-leaf{
+    position:absolute;
+    opacity:0.10;
+    z-index:1;
+    stroke:var(--river);
+    fill:none;
+    stroke-width:1.2;
+  }
+  .hero-content{max-width:760px;}
+  .hero h1{
+    font-size:clamp(2.4rem, 5.4vw, 4.4rem);
+    color:var(--foam);
+    margin-top:1rem;
+  }
+  .hero h1 em{font-style:italic; font-weight:400; color:var(--river-bright);}
+  .hero p.lede{
+    font-size:1.15rem;
+    color:var(--text-on-dark-dim);
+    max-width:540px;
+    margin-top:1.5rem;
+    line-height:1.6;
+  }
+  .hero-ctas{display:flex; gap:1rem; flex-wrap:wrap; margin-top:2.5rem;}
+  .hero-stats{display:flex; gap:2.5rem; margin-top:4.5rem; flex-wrap:wrap;}
+  .hero-stat .num{
+    font-family:var(--font-display);
+    font-size:1.7rem;
+    color:var(--river-bright);
+    font-style:italic;
+    font-weight:400;
+  }
+  .hero-stat .label{font-size:0.85rem; color:var(--text-on-dark-dim); margin-top:0.2rem;}
+
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    gap:3.5rem;
+    align-items:center;
+  }
+  .hero-image{position:relative;}
+  .hero-image::after{
+    content:'';
+    position:absolute;
+    width:60%; height:60%;
+    top:-12%; right:-12%;
+    background:radial-gradient(circle, rgba(215,174,99,0.18), transparent 70%);
+    filter:blur(20px);
+    z-index:-1;
+  }
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr; gap:2.5rem;}
+    .hero-image{max-width:380px; margin:0 auto;}
+  }
+
+  /* ===================== IMAGE FRAME (reusable placeholder) =====================
+     Drop a real photo at the path shown in each frame's <img src> and it will
+     replace the placeholder automatically — no code changes needed. */
+  .img-frame{
+    position:relative;
+    border-radius:20px;
+    overflow:hidden;
+    background:linear-gradient(160deg, var(--moss) 0%, var(--bg-mid) 100%);
+    border:1px solid rgba(123,187,169,0.25);
+    aspect-ratio: var(--ar, 4/5);
+  }
+  .img-frame img{width:100%; height:100%; object-fit:cover; display:block;}
+  .img-frame-placeholder{
+    display:none;
+    position:absolute; inset:0;
+    flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:0.6rem;
+    text-align:center;
+    padding:1.5rem;
+  }
+  .img-frame--empty .img-frame-placeholder{display:flex;}
+  .img-frame-placeholder svg{width:30px; height:30px; color:var(--river-bright); opacity:0.85;}
+  .img-frame-placeholder .ph-title{font-size:0.85rem; font-weight:600; color:var(--foam);}
+  .img-frame-placeholder .ph-meta{font-size:0.72rem; color:var(--text-on-dark-dim); font-family:ui-monospace, monospace;}
+  .img-frame.on-light{
+    background:linear-gradient(160deg, rgba(63,111,82,0.16) 0%, rgba(22,48,42,0.06) 100%);
+    border-color:rgba(22,48,42,0.18);
+  }
+  .img-frame.on-light .ph-title{color:var(--ink);}
+  .img-frame.on-light .ph-meta{color:var(--ink-soft);}
+  .img-frame.on-light .img-frame-placeholder svg{color:var(--moss);}
+
+  /* ===================== SERVICES ===================== */
+  .services{background:var(--bg-mid);}
+  .services-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:1.5rem;}
+  .service-card{
+    background:rgba(242,236,219,0.04);
+    border:1px solid rgba(123,187,169,0.18);
+    border-radius:18px;
+    padding:2.1rem 1.8rem;
+    transition:transform .3s ease, border-color .3s ease, background .3s ease;
+  }
+  .service-card:hover{
+    transform:translateY(-6px);
+    border-color:rgba(123,187,169,0.5);
+    background:rgba(242,236,219,0.07);
+  }
+  .service-icon{width:42px; height:42px; color:var(--river-bright); margin-bottom:1.3rem;}
+  .service-card h3{font-size:1.2rem; color:var(--foam); font-weight:600; margin-bottom:0.6rem;}
+  .service-card p{font-size:0.96rem; color:var(--text-on-dark-dim); line-height:1.6;}
+  @media (max-width:980px){.services-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:640px){.services-grid{grid-template-columns:1fr;}}
+
+  .gallery-strip{margin-top:4rem; padding-top:3rem; border-top:1px solid rgba(123,187,169,0.15);}
+  .gallery-strip-title{font-family:var(--font-display); font-size:1.3rem; color:var(--foam); font-weight:600; margin-bottom:1.5rem;}
+  .gallery-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:1.1rem;}
+  @media (max-width:760px){.gallery-grid{grid-template-columns:1fr;}}
+
+  /* ===================== ABOUT (light clearing) ===================== */
+  .about{background:var(--foam); color:var(--ink);}
+  .about-grid{display:grid; grid-template-columns:0.85fr 1.15fr; gap:3.5rem; align-items:start;}
+  .about-content{display:flex; flex-direction:column; gap:2.2rem;}
+  .about-copy p{color:var(--ink-soft); line-height:1.75; font-size:1.04rem; margin-bottom:1.2rem;}
+  .about-copy p:last-child{margin-bottom:0;}
+  .values{display:grid; grid-template-columns:1fr 1fr; gap:1.6rem 1.8rem;}
+  .value-item{border-top:1px solid rgba(22,48,42,0.15); padding-top:1rem;}
+  .value-item h3{font-family:var(--font-body); font-size:1rem; font-weight:700; color:var(--ink); margin-bottom:0.45rem;}
+  .value-item p{font-size:0.92rem; color:var(--ink-soft); line-height:1.55;}
+  @media (max-width:880px){.about-grid{grid-template-columns:1fr; gap:2.5rem;}}
+  @media (max-width:480px){.values{grid-template-columns:1fr;}}
+
+  /* ===================== CONTACT ===================== */
+  .contact{background:var(--bg-deepest);}
+  .contact-grid{display:grid; grid-template-columns:0.9fr 1.1fr; gap:4rem;}
+  .contact-info-list{display:flex; flex-direction:column; gap:1.6rem; margin-top:2.2rem;}
+  .contact-info-item .label{font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--river); font-weight:600;}
+  .contact-info-item .value{font-size:1.08rem; color:var(--foam); margin-top:0.35rem;}
+  @media (max-width:900px){.contact-grid{grid-template-columns:1fr; gap:2.5rem;}}
+
+  /* ===================== BOOK TEASER ===================== */
+  .book{
+    background-image:
+      linear-gradient(180deg, rgba(14,38,32,0.45), rgba(52,92,67,0.88)),
+      url('images/book-bg.jpg');
+    background-size:cover;
+    background-position:center;
+    background-color:var(--moss-soft);
+    position:relative;
+    overflow:hidden;
+  }
+  .book::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:radial-gradient(ellipse at 80% 0%, rgba(215,174,99,0.12), transparent 55%);
+    pointer-events:none;
+  }
+  .book .section-inner{position:relative; z-index:1; text-align:center;}
+  .book-teaser{max-width:640px; margin:0 auto;}
+  .book-teaser .eyebrow{display:block; margin-bottom:0.9rem;}
+  .book-teaser h2{font-size:clamp(2rem,3.6vw,2.9rem); color:var(--foam); margin-bottom:1.1rem;}
+  .book-teaser p{font-size:1.05rem; color:var(--text-on-dark-dim); line-height:1.6; max-width:520px; margin:0 auto;}
+  .book-teaser .btn{margin-top:2.2rem;}
+  .book-teaser .micro-note{display:block; margin-top:1rem; font-size:0.85rem; color:var(--text-on-dark-dim);}
+
+</style>
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#home" class="logo">Fern <em>&</em> Current</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home" data-nav>Home</a></li>
+      <li><a href="#services" data-nav>Services</a></li>
+      <li><a href="#about" data-nav>About Us</a></li>
+      <li><a href="#contact" data-nav>Contact</a></li>
+      <li><a href="booking.html" class="btn btn-primary">Book a Consultation</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page-grid">
+
+  <!-- River rail: signature element running the length of the page -->
+  <div class="river-rail" aria-hidden="true">
+    <svg id="riverSvg" viewBox="0 0 84 2000" preserveAspectRatio="none">
+      <path id="riverPath" d="M42,0
+        C20,80 64,160 42,240
+        C20,320 64,400 42,480
+        C20,560 64,640 42,720
+        C20,800 64,880 42,960
+        C20,1040 64,1120 42,1200
+        C20,1280 64,1360 42,1440
+        C20,1520 64,1600 42,1680
+        C20,1760 64,1840 42,1920
+        L42,2000"/>
+    </svg>
+  </div>
+  <div class="river-stone" data-stone="home"></div>
+
+  <!-- ===================== HOME / HERO ===================== -->
+  <section class="hero" id="home">
+    <svg class="hero-leaf" style="top:8%; left:62%; width:280px; height:280px;" viewBox="0 0 200 200"><path d="M100 10 C160 40 180 110 100 190 C20 110 40 40 100 10 Z M100 10 L100 190" stroke-width="1"/></svg>
+    <svg class="hero-leaf" style="bottom:-4%; left:4%; width:200px; height:200px;" viewBox="0 0 200 200"><path d="M100 10 C160 40 180 110 100 190 C20 110 40 40 100 10 Z M100 10 L100 190" stroke-width="1"/></svg>
+    <div class="section-inner">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <span class="eyebrow reveal">Fern &amp; Current Events Co.</span>
+          <h1 class="reveal">Where every detail<br>finds its <em>current</em>.</h1>
+          <p class="lede reveal">We plan weddings, celebrations, and gatherings with the patience of a forest and the clarity of a river — so the day unfolds exactly the way it should, and you get to simply be in it.</p>
+          <div class="hero-ctas reveal">
+            <a href="booking.html" class="btn btn-primary">Book a Consultation</a>
+            <a href="#services" class="btn btn-ghost">View Services</a>
+          </div>
+          <div class="hero-stats reveal">
+            <div class="hero-stat">
+              <div class="num">1:1</div>
+              <div class="label">Planner-to-client attention</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">48hr</div>
+              <div class="label">Consultation response time</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">Full</div>
+              <div class="label">Service, start to last dance</div>
+            </div>
+          </div>
+        </div>
+        <div class="img-frame hero-image reveal" style="--ar:4/5;">
+          <img src="images/hero-photo.jpg" alt="A beautifully styled event by Fern & Current" onerror="this.parentElement.classList.add('img-frame--empty')">
+          <div class="img-frame-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+            <span class="ph-title">Hero Photo</span>
+            <span class="ph-meta">images/hero-photo.jpg &middot; 1000&times;1250px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="wave" style="--wave-fill:var(--bg-mid);">
+      <svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0,40 C360,95 1080,0 1440,55 L1440,100 L0,100 Z"/></svg>
+    </div>
+  </section>
+
+  <div class="river-stone" data-stone="services"></div>
+
+  <!-- ===================== SERVICES ===================== -->
+  <section class="services" id="services">
+    <div class="section-inner">
+      <div class="section-head reveal">
+        <span class="eyebrow">What We Do</span>
+        <h2>Planning for every kind of gathering.</h2>
+        <p>From the first conversation to the final toast, our services are built to flex around your event's scale, season, and story.</p>
+      </div>
+      <div class="services-grid">
+
+        <div class="service-card reveal">
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21c4-3 7-7 7-11a7 7 0 0 0-14 0c0 4 3 8 7 11Z"/><path d="M12 14v7"/><path d="M9 11c1 1 2 1 3 0s2-1 3 0"/></svg>
+          <h3>Full-Service Wedding Planning</h3>
+          <p>From first bloom to last dance, we manage every detail of your wedding day and weave your story into something unforgettable.</p>
+        </div>
+
+        <div class="service-card reveal">
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 8h.01M9 12h.01M9 16h.01M15 8h.01M15 12h.01M15 16h.01"/></svg>
+          <h3>Corporate &amp; Brand Events</h3>
+          <p>Conferences, launches, and milestone celebrations designed to reflect your brand's voice and care for every guest in the room.</p>
+        </div>
+
+        <div class="service-card reveal">
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v6M9 5l3-3 3 3"/><path d="M5 9h14l-1.5 11.5a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5L5 9Z"/></svg>
+          <h3>Private Celebrations</h3>
+          <p>Anniversaries, milestone birthdays, and intimate gatherings shaped around the people and moments that matter most.</p>
+        </div>
+
+        <div class="service-card reveal">
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m5 13 4 4L19 7"/><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+          <h3>Day-Of Coordination</h3>
+          <p>Already have a plan? We'll carry it across the finish line with calm precision, so you can simply be present.</p>
+        </div>
+
+        <div class="service-card reveal">
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+          <h3>Floral &amp; Decor Styling</h3>
+          <p>Lush, organic design inspired by the textures of forest and water, tailored to your venue, palette, and vision.</p>
+        </div>
+
+        <div class="service-card reveal">
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 21c4-1 6-3 6-7 0-3-2-5-2-8 3 0 5 2 8 2 4 0 6-2 7-6 1 5-1 9-5 11-3 1.5-5 1-7 3-1 1-2 3-3 5Z"/></svg>
+          <h3>Vendor &amp; Venue Sourcing</h3>
+          <p>We bring a trusted network of florists, caterers, and venues — matched thoughtfully to your budget and style.</p>
+        </div>
+
+      </div>
+
+      <div class="gallery-strip reveal">
+        <h3 class="gallery-strip-title">A few recent moments</h3>
+        <div class="gallery-grid">
+
+          <div class="img-frame gallery-item" style="--ar:1/1;">
+            <img src="images/gallery-1.jpg" alt="A recent event styled by Fern & Current" onerror="this.parentElement.classList.add('img-frame--empty')">
+            <div class="img-frame-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+              <span class="ph-title">Gallery Photo 1</span>
+              <span class="ph-meta">images/gallery-1.jpg &middot; 1200&times;1200px</span>
+            </div>
+          </div>
+
+          <div class="img-frame gallery-item" style="--ar:1/1;">
+            <img src="images/gallery-2.jpg" alt="A recent event styled by Fern & Current" onerror="this.parentElement.classList.add('img-frame--empty')">
+            <div class="img-frame-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+              <span class="ph-title">Gallery Photo 2</span>
+              <span class="ph-meta">images/gallery-2.jpg &middot; 1200&times;1200px</span>
+            </div>
+          </div>
+
+          <div class="img-frame gallery-item" style="--ar:1/1;">
+            <img src="images/gallery-3.jpg" alt="A recent event styled by Fern & Current" onerror="this.parentElement.classList.add('img-frame--empty')">
+            <div class="img-frame-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+              <span class="ph-title">Gallery Photo 3</span>
+              <span class="ph-meta">images/gallery-3.jpg &middot; 1200&times;1200px</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="wave" style="--wave-fill:var(--foam);">
+      <svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0,55 C360,0 1080,95 1440,40 L1440,100 L0,100 Z"/></svg>
+    </div>
+  </section>
+
+  <div class="river-stone" data-stone="about"></div>
+
+  <!-- ===================== ABOUT US ===================== -->
+  <section class="about" id="about">
+    <div class="section-inner">
+      <div class="section-head on-light reveal">
+        <span class="eyebrow on-light">Our Story</span>
+        <h2>Planning, grounded in nature's patience.</h2>
+      </div>
+      <div class="about-grid">
+        <div class="img-frame on-light about-image reveal" style="--ar:4/5;">
+          <img src="images/about-photo.jpg" alt="The Fern & Current team" onerror="this.parentElement.classList.add('img-frame--empty')">
+          <div class="img-frame-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+            <span class="ph-title">About / Founder Photo</span>
+            <span class="ph-meta">images/about-photo.jpg &middot; 1000&times;1250px</span>
+          </div>
+        </div>
+        <div class="about-content">
+          <div class="about-copy reveal">
+            <p>Fern &amp; Current was founded on a simple belief: the best events feel inevitable, like water finding its path downhill. Nothing forced, nothing rushed — just every piece settling exactly where it belongs.</p>
+            <p>We bring meticulous planning and a calm, grounded presence to every gathering we touch, so you can stay present in the moment instead of managing the logistics behind it.</p>
+            <p>Every project starts with listening. We learn your story, your people, and your pace, then build a plan as considered and singular as the landscape it's set in.</p>
+          </div>
+          <div class="values reveal">
+            <div class="value-item">
+              <h3>Rooted in Detail</h3>
+              <p>Timelines, budgets, and logistics are tracked with the same care as the centerpieces.</p>
+            </div>
+            <div class="value-item">
+              <h3>Calm Under Pressure</h3>
+              <p>When something shifts on the day-of, you won't even notice — we already adjusted.</p>
+            </div>
+            <div class="value-item">
+              <h3>Designed to Feel Alive</h3>
+              <p>We favor organic textures and natural materials over anything that feels staged.</p>
+            </div>
+            <div class="value-item">
+              <h3>Built Around You</h3>
+              <p>No two plans look alike, because no two clients — or stories — are the same.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="river-stone" data-stone="contact"></div>
+
+  <!-- ===================== CONTACT ===================== -->
+  <section class="contact" id="contact">
+    <div class="section-inner">
+      <div class="contact-grid">
+        <div>
+          <div class="section-head reveal" style="margin-bottom:0;">
+            <span class="eyebrow">Get In Touch</span>
+            <h2>Let's start the conversation.</h2>
+            <p>Have a question before booking a full consultation? Reach out directly — we read every message ourselves.</p>
+          </div>
+          <div class="contact-info-list reveal">
+            <div class="contact-info-item">
+              <div class="label">Email</div>
+              <div class="value">hello@fernandcurrent.com</div>
+            </div>
+            <div class="contact-info-item">
+              <div class="label">Phone</div>
+              <div class="value">(555) 014-2873</div>
+            </div>
+            <div class="contact-info-item">
+              <div class="label">Service Area</div>
+              <div class="value">Based in the Pacific Northwest — available to travel</div>
+            </div>
+          </div>
+        </div>
+
+        <form class="form-card reveal" id="contactForm">
+          <div class="field">
+            <label for="cName">Name</label>
+            <input type="text" id="cName" placeholder="Your full name" required>
+          </div>
+          <div class="field">
+            <label for="cEmail">Email</label>
+            <input type="email" id="cEmail" placeholder="you@email.com" required>
+          </div>
+          <div class="field">
+            <label for="cMessage">Message</label>
+            <textarea id="cMessage" placeholder="What's on your mind?" required></textarea>
+          </div>
+          <div class="form-foot">
+            <span class="form-note">We typically reply within 2 business days.</span>
+            <button type="submit" class="btn btn-primary">Send Message</button>
+          </div>
+          <div class="form-success" id="contactSuccess">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 13 4 4L19 7"/></svg>
+            <p><strong>Message sent.</strong>Thanks for reaching out — we'll be in touch soon.</p>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="wave" style="--wave-fill:var(--moss-soft);">
+      <svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0,40 C360,95 1080,0 1440,50 L1440,100 L0,100 Z"/></svg>
+    </div>
+  </section>
+
+  <div class="river-stone" data-stone="book"></div>
+
+  <!-- ===================== BOOK A CONSULTATION ===================== -->
+  <section class="book" id="book">
+    <div class="section-inner">
+      <div class="book-teaser reveal">
+        <span class="eyebrow">Next Step</span>
+        <h2>Build your event and get an instant quote.</h2>
+        <p>Pick a planning package, add the extras you want, and watch your estimate update in real time. Send it our way when you're ready and we'll follow up within two business days.</p>
+        <a href="booking.html" class="btn btn-primary">Start Your Quote</a>
+        <span class="micro-note">Takes about 3 minutes &middot; no commitment required</span>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /page-grid -->
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="footer-inner">
+    <a href="#home" class="logo">Fern <em>&</em> Current</a>
+    <ul class="footer-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#about">About Us</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="booking.html">Book a Consultation</a></li>
+    </ul>
+    <div class="footer-copy">© 2026 Fern &amp; Current Events Co. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // ---------- Nav scroll state ----------
+  var nav = document.getElementById('nav');
+  function onScroll(){
+    nav.classList.toggle('is-scrolled', window.scrollY > 30);
+  }
+  document.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  // ---------- Mobile nav toggle ----------
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  toggle.addEventListener('click', function(){
+    toggle.classList.toggle('is-open');
+    links.classList.toggle('is-open');
+  });
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      toggle.classList.remove('is-open');
+      links.classList.remove('is-open');
+    });
+  });
+
+  // ---------- Scroll-margin so sticky nav doesn't cover anchors ----------
+  document.querySelectorAll('section[id]').forEach(function(s){
+    s.style.scrollMarginTop = '84px';
+  });
+
+  // ---------- Reveal on scroll ----------
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduceMotion && 'IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.add('is-visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, {threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('is-visible'); });
+  }
+
+  // ---------- Scrollspy: active nav link + active river stone ----------
+  var sections = ['home','services','about','contact','book'];
+  var navAnchors = {};
+  document.querySelectorAll('[data-nav]').forEach(function(a){
+    navAnchors[a.getAttribute('href').slice(1)] = a;
+  });
+  var stones = {};
+  document.querySelectorAll('.river-stone').forEach(function(s){
+    stones[s.getAttribute('data-stone')] = s;
+  });
+
+  function updateSpy(){
+    var pos = window.scrollY + window.innerHeight * 0.35;
+    var current = sections[0];
+    sections.forEach(function(id){
+      var el = document.getElementById(id);
+      if(el && el.offsetTop <= pos) current = id;
+    });
+    sections.forEach(function(id){
+      if(navAnchors[id]) navAnchors[id].classList.toggle('active', id === current);
+      if(stones[id]) stones[id].classList.toggle('is-active', id === current);
+    });
+  }
+  document.addEventListener('scroll', updateSpy, {passive:true});
+  window.addEventListener('resize', updateSpy);
+  updateSpy();
+
+  // ---------- River line "flow" tied to scroll progress ----------
+  var riverPath = document.getElementById('riverPath');
+  if(riverPath && !reduceMotion){
+    var len = riverPath.getTotalLength();
+    riverPath.style.strokeDasharray = len;
+    riverPath.style.strokeDashoffset = len;
+    function updateRiver(){
+      var doc = document.documentElement;
+      var max = doc.scrollHeight - window.innerHeight;
+      var progress = max > 0 ? Math.min(window.scrollY / max, 1) : 1;
+      riverPath.style.strokeDashoffset = len * (1 - progress);
+    }
+    document.addEventListener('scroll', updateRiver, {passive:true});
+    window.addEventListener('resize', updateRiver);
+    updateRiver();
+  }
+
+  // ---------- Form handlers (no backend wired — shows inline confirmation) ----------
+  function wireForm(formId, successId){
+    var form = document.getElementById(formId);
+    var success = document.getElementById(successId);
+    if(!form) return;
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      success.classList.add('is-shown');
+      form.querySelectorAll('input, textarea, select').forEach(function(f){ f.disabled = true; });
+      form.querySelector('button[type="submit"]').disabled = true;
+      form.querySelector('button[type="submit"]').style.opacity = '0.6';
+      success.scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block:'nearest'});
+    });
+  }
+  wireForm('contactForm', 'contactSuccess');
+})();
+</script>
+
+</body>
+</html>
